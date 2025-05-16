@@ -8,7 +8,7 @@
 # MIT License
 #
 # Copyright (c) 2025 Frank Mitchell
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # n the Software without restriction, including without limitation the rights
@@ -36,20 +36,23 @@ from typing import Protocol
 
 DEFAULT_NUMBER_OF_NAMES = 100
 
-# maximum retries to find a unique star name
+# maximum retries to find a unique name
 MAX_RETRIES: int = 1_000_000
 
 
 class NameSource(Protocol):
-    def name(self) -> str: ...
+    def make_name(self) -> str: ...
 
 
-class SimpleNameSource:
-    def __init__(self, jsonsrc: dict):
+class NameGenerator:
+    def __init__(self, jsonsrc: dict, no_caps: bool = False) -> str:
         assert "min_syllables" in jsonsrc
         assert "max_syllables" in jsonsrc
         assert "initial" in jsonsrc
         assert "vowels" in jsonsrc
+
+        self._pastnames: set[str] = set()
+        self._no_caps = no_caps
 
         self._max: int
         self._min: int
@@ -74,7 +77,7 @@ class SimpleNameSource:
         else:
             self._medial = jsonsrc["medial"]
 
-    def name(self) -> str:
+    def _raw_name(self) -> str:
         nsyllables: int = random.randint(self._min, self._max)
 
         name_seq: list[str] = [
@@ -85,19 +88,16 @@ class SimpleNameSource:
             name_seq.extend((random.choice(self._medial), random.choice(self._vowels)))
         name_seq.append(random.choice(self._final))
 
-        return "".join(name_seq).capitalize()
+        result: str = "".join(name_seq)
+        if not self._no_caps:
+            result = result.capitalize()
+        return result
 
-
-class NameUniquifier:
-    def __init__(self, source: NameSource) -> None:
-        self._source = source
-        self._pastnames: set[str] = set()
-
-    def name(self) -> str:
+    def make_name(self) -> str:
         count: int = 0
-        newname: str = self._source.name()
+        newname: str = self._raw_name()
         while newname and newname in self._pastnames and count < MAX_RETRIES:
-            newname = self._source.name()
+            newname = self._raw_name()
             count += 1
         self._pastnames.add(newname)
         return newname
@@ -127,16 +127,23 @@ def main() -> None:
         default="-",
         type=argparse.FileType(mode="w", encoding="UTF-8"),
     )
+    parser.add_argument(
+        "-C",
+        "--no-caps",
+        help="preserve capitalization in the initial symbols",
+        default=False,
+        action='store_true'
+    )
     args = parser.parse_args()
 
     namesrc: NameSource
 
     with args.namefile as jsonfile:
-        namesrc = NameUniquifier(SimpleNameSource(json.load(jsonfile)))
+        namesrc = NameGenerator(json.load(jsonfile), args.no_caps)
 
     with args.output as outfile:
         for _ in range(args.number):
-            outfile.write(f"{namesrc.name()}\n")
+            outfile.write(f"{namesrc.make_name()}\n")
 
 
 if __name__ == "__main__":

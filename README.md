@@ -5,19 +5,18 @@ a constructed language.
 ### Usage
 
 ```
-usage: namegen.py [-h] [-n NUMBER] [-o OUTPUT] namefile
+usage: namegen.py [-h] [-n NUMBER] [-o OUTPUT] [-C] namefile
 
 Generate a list of names based on a grammar
 
 positional arguments:
-  namefile              JSON file specifying random name generator
+  namefile             JSON file specifying random name generator
 
 options:
-  -h, --help            show this help message and exit
-  -n NUMBER, --number NUMBER
-                        number of names to generate
-  -o OUTPUT, --output OUTPUT
-                        output file
+  -h, --help           show this help message and exit
+  -n, --number NUMBER  number of names to generate
+  -o, --output OUTPUT  output file
+  -C, --no-caps        preserve capitalization in the initial symbols
 ```
 
 ### Random Name Generator Grammar Format

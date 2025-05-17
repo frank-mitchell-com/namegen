@@ -28,10 +28,11 @@
 # SOFTWARE.
 
 import argparse
+import bisect
 import itertools
 import json
 import random
-from collections.abc import Sequence
+from collections.abc import Mapping
 from typing import Protocol
 
 DEFAULT_NUMBER_OF_NAMES = 100
@@ -42,6 +43,58 @@ MAX_RETRIES: int = 1_000_000
 
 class NameSource(Protocol):
     def make_name(self) -> str: ...
+
+
+class WeightedChoiceTable(Mapping):
+    def __init__(self, obj: list[str] | dict[str, float]):
+        self._map: dict[str, float] = {}
+        self._choices: list[str] = []
+        self._weights: list[float] = []
+
+        if isinstance(obj, dict):
+            m: dict = obj
+            for key in iter(obj):
+                self.set_weight_for_choice(str(key), float(m[key]))
+        elif isinstance(obj, list):
+            l: list = obj
+            for key in iter(obj):
+                self.set_weight_for_choice(str(key), 1)
+        else:
+            raise TypeError
+
+    def set_weight_for_choice(self, choice: str, weight: float) -> None:
+        i: int = bisect.bisect(self._choices, choice)
+        if i < len(self._choices) and self._choices[i] == choice:
+            self._weights[i] = weight
+        else:
+            self._choices.insert(i, choice)
+            self._weights.insert(i, weight)
+        self._map[choice] = weight
+
+    def choose(self) -> str:
+        return random.choices(self._choices, self._weights)[0]
+
+    def __contains__(self, item):
+        return item in self._map
+
+    def __getitem__(self, key):
+        return self._map[key]
+
+    def __iter__(self):
+        return iter(self._map)
+
+    def __len__(self):
+        return len(self._map)
+
+    def __str__(self) -> str:
+        buffer: list[str] = []
+        buffer.append("{")
+        for i in range(0, len(self._choices)):
+            if i > 0:
+                buffer.append(", ")
+            buffer.append(f"{self._choices[i]}:={self._weights[i]}")
+        buffer.append("}")
+        return "".join(buffer)
 
 
 class NameGenerator:
@@ -56,37 +109,42 @@ class NameGenerator:
 
         self._max: int
         self._min: int
-        self._initial: Sequence[str]
-        self._medial: Sequence[str]
-        self._final: Sequence[str]
-        self._vowels: Sequence[str]
+        self._initial: WeightedChoiceTable
+        self._medial: WeightedChoiceTable | None
+        self._final: WeightedChoiceTable | None
+        self._vowels: WeightedChoiceTable
 
         # TODO: Verify types from `jsonsrc`
-        self._min = jsonsrc["min_syllables"]
-        self._max = jsonsrc["max_syllables"]
-        self._vowels = jsonsrc["vowels"]
-        self._initial = jsonsrc["initial"]
+        self._min = int(jsonsrc["min_syllables"])
+        self._max = int(jsonsrc["max_syllables"])
+        self._vowels = WeightedChoiceTable(jsonsrc["vowels"])
+        self._initial = WeightedChoiceTable(jsonsrc["initial"])
         if "final" not in jsonsrc or not jsonsrc["final"]:
-            self._final = [""]
+            self._final = None
         else:
-            self._final = jsonsrc["final"]
+            self._final = WeightedChoiceTable(jsonsrc["final"])
         if "medial" not in jsonsrc or not jsonsrc["medial"]:
-            self._medial = [
-                "".join(x) for x in itertools.product(self._final, self._initial)
-            ]
+            self._medial = None
         else:
-            self._medial = jsonsrc["medial"]
+            self._medial = WeightedChoiceTable(jsonsrc["medial"])
 
     def _raw_name(self) -> str:
         nsyllables: int = random.randint(self._min, self._max)
 
         name_seq: list[str] = [
-            random.choice(self._initial),
-            random.choice(self._vowels),
+            self._initial.choose(),
+            self._vowels.choose(),
         ]
         for _ in range(1, nsyllables):
-            name_seq.extend((random.choice(self._medial), random.choice(self._vowels)))
-        name_seq.append(random.choice(self._final))
+            if self._medial:
+                name_seq.append(self._medial.choose())
+            else:
+                if self._final:
+                    name_seq.append(self._final.choose())
+                name_seq.append(self._initial.choose())
+            name_seq.append(self._vowels.choose())
+        if self._final:
+            name_seq.append(self._final.choose())
 
         result: str = "".join(name_seq)
         if not self._no_caps:
@@ -132,7 +190,7 @@ def main() -> None:
         "--no-caps",
         help="preserve capitalization in the initial symbols",
         default=False,
-        action='store_true'
+        action="store_true",
     )
     args = parser.parse_args()
 

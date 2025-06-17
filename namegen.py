@@ -29,7 +29,6 @@
 
 import argparse
 import bisect
-import itertools
 import json
 import random
 from collections.abc import Mapping
@@ -47,17 +46,17 @@ class NameSource(Protocol):
 
 class WeightedChoiceTable(Mapping):
     def __init__(self, obj: list[str] | dict[str, float]):
-        self._map: dict[str, float] = {}
+        self._map: dict[str, float] | None = None
         self._choices: list[str] = []
         self._weights: list[float] = []
 
         if isinstance(obj, dict):
-            m: dict = obj
-            for key in iter(obj):
-                self.set_weight_for_choice(str(key), float(m[key]))
+            mp: dict = obj
+            for key in iter(mp):
+                self.set_weight_for_choice(str(key), float(mp[key]))
         elif isinstance(obj, list):
-            l: list = obj
-            for key in iter(obj):
+            lst: list = obj
+            for key in iter(lst):
                 self.set_weight_for_choice(str(key), 1)
         else:
             raise TypeError
@@ -69,27 +68,32 @@ class WeightedChoiceTable(Mapping):
         else:
             self._choices.insert(i, choice)
             self._weights.insert(i, weight)
-        self._map[choice] = weight
+        self._map = None
 
     def choose(self) -> str:
         return random.choices(self._choices, self._weights)[0]
 
+    @property
+    def mapview(self):
+        if self._map is None:
+            self._map = dict(zip(self._choices, self._weights))
+        return self._map
+
     def __contains__(self, item):
-        return item in self._map
+        return item in self.mapview
 
     def __getitem__(self, key):
-        return self._map[key]
+        return self.mapview[key]
 
     def __iter__(self):
-        return iter(self._map)
+        return iter(self.mapview)
 
     def __len__(self):
-        return len(self._map)
+        return len(self.mapview)
 
     def __str__(self) -> str:
-        buffer: list[str] = []
-        buffer.append("{")
-        for i in range(0, len(self._choices)):
+        buffer: list[str] = ["{"]
+        for i in range(len(self._choices)):
             if i > 0:
                 buffer.append(", ")
             buffer.append(f"{self._choices[i]}:={self._weights[i]}")

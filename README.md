@@ -1,36 +1,59 @@
-`namegen.py` generates a list of random words based on a simple grammar.
+`namegen` generates a list of random words based on a simple grammar.
 It can be used to generate names for science-fiction aliens or words in
 a constructed language.
 
-### Usage
+## Build
 
-This project provides a simple driver program:
+Install `uv` and type
 
+`uv build`
+
+TODO
+
+## Usage
+
+Here is a simple program that loads a grammar from an external file and
+generates 10 unique names.
+
+```py
+import json
+from namegen import NameGenerator, NameSource
+
+FILENAME = "grammars/zeta-grammar.json"
+
+
+def main() -> None:
+
+    namesrc: NameSource
+
+    with open(FILENAME, "r") as jsonfile:
+        namesrc = NameGenerator(json.load(jsonfile))
+
+    for _ in range(10):
+        print(namesrc.make_name())
+
+
+if __name__ == "__main__":
+    main()
 ```
-usage: main.py [-h] [-n NUMBER] [-o OUTPUT] [-C] namefile
 
-Generate a list of names based on a grammar
+See `main.py` in the full source distribution for a full-featured driver
+program.
 
-positional arguments:
-  namefile             JSON file specifying random name generator
+See the `grammar/*-grammar.json` files in the full source distribution
+for example grammars.
 
-options:
-  -h, --help           show this help message and exit
-  -n, --number NUMBER  number of names to generate
-  -o, --output OUTPUT  output file
-  -C, --no-caps        preserve capitalization in the initial symbols
-```
 
-### Random Name Generator Grammar Format
+## Random Name Generator Grammar Format
 
-The grammars for `namegen.py` constructs a name as a sequence of *syllables*.
-Each grammar specification is a single Python `dict` ith the following keys:
+`NameGenerator` constructs a name as a sequence of *syllables*.
+Each grammar configuration is a single Python `dict` ith the following keys:
 
 `min_syllables`:
-: The minimum number of syllables in a name.
+: The minimum number of syllables in a name ('int').
 
 `max_syllables`:
-: The maximum number of syllables in a name.
+: The maximum number of syllables in a name ('int').
 
 `initial`:
 : A Letter Table containing zero or more letters, ideally consonants
@@ -54,5 +77,3 @@ A "Letter Table" is either a Python `list` of strings used to construct a Name,
 or a Python 'dict` whose keys are Python strings and whose values are Python
 `int`s or `float`s. The `dict` form attaches statistical weights for the
 corresponding "letters", while the `list` form denotes a flat distribution.
-
-See the `grammar/*-grammar.json` files in this directory for examples.

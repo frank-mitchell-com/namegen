@@ -4,8 +4,10 @@ a constructed language.
 
 ### Usage
 
+This project provides a simple driver program:
+
 ```
-usage: namegen.py [-h] [-n NUMBER] [-o OUTPUT] [-C] namefile
+usage: main.py [-h] [-n NUMBER] [-o OUTPUT] [-C] namefile
 
 Generate a list of names based on a grammar
 

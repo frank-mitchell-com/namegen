@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-# /// script
-# requires-python = ">=3.12"
-# dependencies = []
-# ///
-
 # MIT License
 #
 # Copyright (c) 2025 Frank Mitchell
@@ -27,14 +22,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import argparse
 import bisect
 import json
 import random
 from collections.abc import Mapping
 from typing import Protocol
-
-DEFAULT_NUMBER_OF_NAMES = 100
 
 # maximum retries to find a unique name
 MAX_RETRIES: int = 1_000_000
@@ -163,50 +155,3 @@ class NameGenerator:
             count += 1
         self._pastnames.add(newname)
         return newname
-
-
-def main() -> None:
-    # Parse arguments
-    parser = argparse.ArgumentParser(
-        description="Generate a list of names based on a grammar"
-    )
-    parser.add_argument(
-        "namefile",
-        help="JSON file specifying random name generator",
-        type=argparse.FileType(mode="r", encoding="UTF-8"),
-    )
-    parser.add_argument(
-        "-n",
-        "--number",
-        help="number of names to generate",
-        default=DEFAULT_NUMBER_OF_NAMES,
-        type=int,
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="output file",
-        default="-",
-        type=argparse.FileType(mode="w", encoding="UTF-8"),
-    )
-    parser.add_argument(
-        "-C",
-        "--no-caps",
-        help="preserve capitalization in the initial symbols",
-        default=False,
-        action="store_true",
-    )
-    args = parser.parse_args()
-
-    namesrc: NameSource
-
-    with args.namefile as jsonfile:
-        namesrc = NameGenerator(json.load(jsonfile), args.no_caps)
-
-    with args.output as outfile:
-        for _ in range(args.number):
-            outfile.write(f"{namesrc.make_name()}\n")
-
-
-if __name__ == "__main__":
-    main()

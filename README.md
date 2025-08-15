@@ -2,13 +2,35 @@
 It can be used to generate names for science-fiction aliens or words in
 a constructed language.
 
-## Build
+## Install
 
-Install `uv` and type
+### From PyPI
 
-`uv build`
+Once this project is registered with PyPI you should be able to call
 
-TODO
+```
+pip install namegen
+```
+
+or the equivalent.
+
+
+### From Source
+
+Install `uv`, cd to the project directory, and type:
+
+```
+uv build
+```
+
+then type
+
+```
+pip install dist/namegen-*.whl
+```
+
+or the equivalent.
+
 
 ## Usage
 
@@ -49,27 +71,27 @@ for example grammars.
 `NameGenerator` constructs a name as a sequence of *syllables*.
 Each grammar configuration is a single Python `dict` ith the following keys:
 
-`min_syllables`:
-: The minimum number of syllables in a name ('int').
+- `min_syllables`:
+  The minimum number of syllables in a name ('int').
 
-`max_syllables`:
-: The maximum number of syllables in a name ('int').
+- `max_syllables`:
+  The maximum number of syllables in a name ('int').
 
-`initial`:
-: A Letter Table containing zero or more letters, ideally consonants
+- `initial`:
+  A Letter Table containing zero or more letters, ideally consonants
   or the empty string.
 
-`vowels`:
-: A Letter Table containing zero or more letters, ideally vowels.
+- `vowels`:
+  A Letter Table containing zero or more letters, ideally vowels.
 
-`medial` (optional):
-: A Letter Table containing zero or more letters (consonant clusters) that
+- `medial` (optional):
+  A Letter Table containing zero or more letters (consonant clusters) that
   occur *between* vowels`.  If not given, the code will use the product of
   initial` &times; `final`.
 
-`final` (optional):
-: A Letter Table containing zero or more letters that occur at
-  the end of a name (or a syllable, if `medial` is not given). If `final` is
+- `final` (optional):
+: A Letter Table containing zero or more letters that occur at the end of a
+  name (or a syllable, if `medial` is not given). If `final` is
   not given, it is assumed to be equal to a Letter Table containing only
   the empty string ("").
 

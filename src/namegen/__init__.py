@@ -23,7 +23,6 @@
 # SOFTWARE.
 
 import bisect
-import json
 import random
 from collections.abc import Mapping
 from typing import Protocol
@@ -33,7 +32,13 @@ MAX_RETRIES: int = 1_000_000
 
 
 class NameSource(Protocol):
+    """
+    Compatibility with methods on `namemaker.make_name_set` result.
+    """
+
     def make_name(self) -> str: ...
+
+    def add_to_history(self, name: str) -> None: ...
 
 
 class WeightedChoiceTable(Mapping):
@@ -94,11 +99,11 @@ class WeightedChoiceTable(Mapping):
 
 
 class NameGenerator:
-    def __init__(self, jsonsrc: dict, no_caps: bool = False) -> str:
-        assert "min_syllables" in jsonsrc
-        assert "max_syllables" in jsonsrc
-        assert "initial" in jsonsrc
-        assert "vowels" in jsonsrc
+    def __init__(self, config: dict, no_caps: bool = False) -> str:
+        assert "min_syllables" in config
+        assert "max_syllables" in config
+        assert "initial" in config
+        assert "vowels" in config
 
         self._pastnames: set[str] = set()
         self._no_caps = no_caps
@@ -110,19 +115,19 @@ class NameGenerator:
         self._final: WeightedChoiceTable | None
         self._vowels: WeightedChoiceTable
 
-        # TODO: Verify types from `jsonsrc`
-        self._min = int(jsonsrc["min_syllables"])
-        self._max = int(jsonsrc["max_syllables"])
-        self._vowels = WeightedChoiceTable(jsonsrc["vowels"])
-        self._initial = WeightedChoiceTable(jsonsrc["initial"])
-        if "final" not in jsonsrc or not jsonsrc["final"]:
+        # TODO: Verify types from `config`
+        self._min = int(config["min_syllables"])
+        self._max = int(config["max_syllables"])
+        self._vowels = WeightedChoiceTable(config["vowels"])
+        self._initial = WeightedChoiceTable(config["initial"])
+        if "final" not in config or not config["final"]:
             self._final = None
         else:
-            self._final = WeightedChoiceTable(jsonsrc["final"])
-        if "medial" not in jsonsrc or not jsonsrc["medial"]:
+            self._final = WeightedChoiceTable(config["final"])
+        if "medial" not in config or not config["medial"]:
             self._medial = None
         else:
-            self._medial = WeightedChoiceTable(jsonsrc["medial"])
+            self._medial = WeightedChoiceTable(config["medial"])
 
     def _raw_name(self) -> str:
         nsyllables: int = random.randint(self._min, self._max)
@@ -155,3 +160,6 @@ class NameGenerator:
             count += 1
         self._pastnames.add(newname)
         return newname
+
+    def add_to_history(self, name: str) -> None:
+        self.pastnames.add(name)

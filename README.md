@@ -24,7 +24,7 @@ options:
 ### Random Name Generator Grammar Format
 
 The grammars for `namegen.py` constructs a name as a sequence of *syllables*.
-Each grammar specification is a single JSON Object with the following keys:
+Each grammar specification is a single Python `dict` ith the following keys:
 
 `min_syllables`:
 : The minimum number of syllables in a name.
@@ -33,25 +33,26 @@ Each grammar specification is a single JSON Object with the following keys:
 : The maximum number of syllables in a name.
 
 `initial`:
-: A List or Object of Strings containing zero or more letters, ideally
-  consonants. If an Object, the keys are letters, the values are numbers
-  expressing weights for each letter or letter cluster.
+: A Letter Table containing zero or more letters, ideally consonants
+  or the empty string.
 
-`vowels`
-: A List or Object of Strings containing zero or more letters, ideally vowels.
-  If an Object, the keys are letters, the values are numbers expressing weights
-  for each letter or letter cluster.
+`vowels`:
+: A Letter Table containing zero or more letters, ideally vowels.
 
 `medial` (optional):
-: A List or Object of Strings containing zero or more letters that occur
-  *between* vowels`.  If not given, the code will use the product of
+: A Letter Table containing zero or more letters (consonant clusters) that
+  occur *between* vowels`.  If not given, the code will use the product of
   initial` &times; `final`.
-  See `initial` for the keys and values expected in an Object.
 
 `final` (optional):
-: A List or Object of Strings containing zero or more letters that occur at
+: A Letter Table containing zero or more letters that occur at
   the end of a name (or a syllable, if `medial` is not given). If `final` is
-  not given, it is assumed to be equal to `[""]` (a List of the empty string).
-  See `initial` for the keys and values expected in an Object.
+  not given, it is assumed to be equal to a Letter Table containing only
+  the empty string ("").
 
-See the `grammar/*-grammar.json` files in this directory.
+A "Letter Table" is either a Python `list` of strings used to construct a Name,
+or a Python 'dict` whose keys are Python strings and whose values are Python
+`int`s or `float`s. The `dict` form attaches statistical weights for the
+corresponding "letters", while the `list` form denotes a flat distribution.
+
+See the `grammar/*-grammar.json` files in this directory for examples.

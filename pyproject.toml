@@ -1,7 +1,7 @@
 [project]
 name = "namegen"
 version = "0.1.0"
-description = "Add your description here"
+description = "Module to generate names based on a grammar file"
 readme = "README.md"
 authors = [
     { name = "Frank Mitchell", email = "me@frank-mitchell.com" }

@@ -160,4 +160,4 @@ class NameGenerator:
         return newname
 
     def add_to_history(self, name: str) -> None:
-        self.pastnames.add(name)
+        self._pastnames.add(name)

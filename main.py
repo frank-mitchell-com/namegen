@@ -40,7 +40,7 @@ DEFAULT_NUMBER_OF_NAMES = 100
 def main() -> None:
     # Parse arguments
     parser = argparse.ArgumentParser(
-        description="Generate a list of names based on a grammar"
+        description="Generate random words based on a syllable pattern specification"
     )
     parser.add_argument(
         "namefile",

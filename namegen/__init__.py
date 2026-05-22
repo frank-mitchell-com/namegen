@@ -169,4 +169,3 @@ class NameGenerator:
 
     def get_history(self) -> set[str]:
         return set(self._pastnames)
-

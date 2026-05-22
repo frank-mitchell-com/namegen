@@ -3,15 +3,14 @@ TODO
 
 ## Testing
 
-- Bounded tests based on simple grammar and regexp,
-  e.g. `([bcdfghjkl][aeiou][mnpqrstvwxyz])*`
-
 - Write unit tests for word generation
 
   1. Monkeypatch random elements
   2. Refactor out random elements & test remainder
 
 - Write unit tests for format validation
+
+- Write unit test for excluded words
 
 ## Packaging
 

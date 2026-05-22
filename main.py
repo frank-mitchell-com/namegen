@@ -55,6 +55,11 @@ def main() -> None:
         type=int,
     )
     parser.add_argument(
+        "-x",
+        "--exclude",
+        help="file of words to exclude, one per line",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         help="output file",
@@ -74,6 +79,12 @@ def main() -> None:
 
     with args.namefile as jsonfile:
         namesrc = NameGenerator(json.load(jsonfile), args.no_caps)
+
+    if args.exclude:
+        with open(args.exclude, "r") as excludefile:
+            for line in excludefile.readlines():
+                word = line.strip()
+                namesrc.add_to_history(word)
 
     with args.output as outfile:
         for _ in range(args.number):

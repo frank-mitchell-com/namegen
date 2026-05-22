@@ -22,7 +22,7 @@
 
 import bisect
 import random
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from typing import Protocol
 
 # maximum retries to find a unique name
@@ -36,7 +36,9 @@ class NameSource(Protocol):
 
     def make_name(self) -> str: ...
 
-    def add_to_history(self, name: str) -> None: ...
+    def add_to_history(self, name_s: str | Iterable[str]) -> None: ...
+
+    def get_history(self) -> set[str]: ...
 
 
 class WeightedChoiceTable(Mapping):
@@ -159,5 +161,12 @@ class NameGenerator:
         self._pastnames.add(newname)
         return newname
 
-    def add_to_history(self, name: str) -> None:
-        self._pastnames.add(name)
+    def add_to_history(self, name_s: str | Iterable[str]) -> None:
+        if type(name_s) is str:
+            self._pastnames.add(name_s)
+        else:
+            self._pastnames |= set(name_s)
+
+    def get_history(self) -> set[str]:
+        return set(self._pastnames)
+
